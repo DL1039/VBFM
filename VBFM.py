@@ -1,138 +1,94 @@
-import pandas as pd
-import numpy as np
+# Regression Example With Boston Dataset: Baseline
 import scipy.io
-import tensorflow as tf
-import math
+import numpy as np
 
-display_step = 10
-def random_mini_batches(X, Y, mini_batch_size = 64, seed = 0):
-    """
-    Creates a list of random minibatches from (X, Y)
-    
-    Arguments:
-    X -- input data, of shape (input size, number of examples)
-    Y -- true "label" vector (1 for blue dot / 0 for red dot), of shape (1, number of examples)
-    mini_batch_size -- size of the mini-batches, integer
-    
-    Returns:
-    mini_batches -- list of synchronous (mini_batch_X, mini_batch_Y)
-    """
-    
-    np.random.seed(seed)            # To make your "random" minibatches the same as ours
-    m = X.shape[1]                  # number of training examples
-    mini_batches = []
-        
-    # Step 1: Shuffle (X, Y)
-    permutation = list(np.random.permutation(m))
-    shuffled_X = X[:, permutation]
-    shuffled_Y = Y[:, permutation].reshape((1,m))
-
-    # Step 2: Partition (shuffled_X, shuffled_Y). Minus the end case.
-    num_complete_minibatches = math.floor(m/mini_batch_size) # number of mini batches of size mini_batch_size in your partitionning
-    for k in range(0, num_complete_minibatches):
-        ### START CODE HERE ### (approx. 2 lines)
-        mini_batch_X = shuffled_X[:,k*mini_batch_size:(k+1)*mini_batch_size]
-        mini_batch_Y = shuffled_Y[:,k*mini_batch_size:(k+1)*mini_batch_size]
-        ### END CODE HERE ###
-        mini_batch = (mini_batch_X, mini_batch_Y)
-        mini_batches.append(mini_batch)
-    
-    # Handling the end case (last mini-batch < mini_batch_size)
-    if m % mini_batch_size != 0:
-        ### START CODE HERE ### (approx. 2 lines)
-        mini_batch_X = shuffled_X[:,(num_complete_minibatches*mini_batch_size)+1:]
-        mini_batch_Y = shuffled_Y[:,(num_complete_minibatches*mini_batch_size)+1:]
-        ### END CODE HERE ###
-        mini_batch = (mini_batch_X, mini_batch_Y)
-        mini_batches.append(mini_batch)
-    
-    return mini_batches
+from keras.models import Sequential
+from keras.layers import Dense
+from sklearn.model_selection import train_test_split
+from keras.wrappers.scikit_learn import KerasRegressor
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import KFold
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+from matplotlib import pyplot
 
 
 #Load NN Data
-mat=scipy.io.loadmat(r'/home/vm/Python/NeuralNetwork/NNData.mat')
+mat=scipy.io.loadmat(r'/home/dl2020/Python/BostonHousing/Data.mat')
 print(mat.keys())
 
-TrainData=mat["TrainData"]
-print(TrainData.shape)
-Train_x=np.transpose(TrainData[:,0:5])
-Train_y=np.transpose(TrainData[:,5:])
+X_train=mat["X_train"]
+Y_train=mat["Y_train"]
+X_test=mat["X_test"]
+Y_test=mat["Y_test"]
 
-print(Train_x.shape)
-print(Train_y.shape)
-#mini_batch_size=64
-mini_batches = random_mini_batches(Train_x, Train_y)
+print(X_train.shape)
+print(Y_train.shape)
+print(X_test.shape)
+print(Y_test.shape)
 
-x = tf.placeholder(tf.float32, shape=[None, 5])
-W1 = tf.get_variable("W1", shape=[5,10], initializer = tf.contrib.layers.xavier_initializer())
-b1 = tf.get_variable("b1", shape=[10], initializer =  tf.constant_initializer(0.01)) #tf.zeros_initializer())
-W2 = tf.get_variable("W2", [10,1], initializer = tf.contrib.layers.xavier_initializer())
-b2 = tf.get_variable("b2", [1], initializer = tf.constant_initializer(0.01)) #tf.zeros_initializer())
-parameters = {"W1": W1,"b1": b1,"W2": W2,"b2": b2}
+# define base model
+def baseline_model():
+	# create model
+	# model = Sequential()
+	# model.add(Dense(20, input_dim=8, kernel_initializer='normal', activation='relu'))
+	# #model.add(Dense(4, kernel_initializer='normal', activation='relu'))
+	# model.add(Dense(1, kernel_initializer='normal'))
+	# Compile model
+	#model.compile(loss='mean_squared_error',metrics=['mse', 'mae', 'mape', 'cosine'], optimizer='adam')
+	#model.compile(loss='mean_squared_error',metrics=['mse'], optimizer='adam')
 
-#W = tf.get_variable("weights", shape=[5, 10],initializer=tf.contrib.layers.xavier_initializer()) #tf.truncated_normal_initializer(stddev=0.01) #tf.glorot_uniform_initializer()
-#b = tf.get_variable("bias", shape=[10],initializer=tf.constant_initializer(0.01))#tf.zeros_initializer()
+	model = Sequential()
 
-A1 = tf.nn.sigmoid(tf.matmul(x, W1) + b1)
-y = tf.nn.relu(tf.matmul(A1, W2) + b2)
-y_ = tf.placeholder(tf.float32, [None, 1])
+	# The Input Layer :
+	model.add(Dense(128, kernel_initializer='normal',input_dim = 8, activation='relu'))
+
+	# The Hidden Layers :
+	model.add(Dense(256, kernel_initializer='normal',activation='relu'))
+	model.add(Dense(256, kernel_initializer='normal',activation='relu'))
+	model.add(Dense(256, kernel_initializer='normal',activation='relu'))
+
+	# The Output Layer :
+	model.add(Dense(1, kernel_initializer='normal',activation='linear'))
+
+	# Compile the network :
+	
+	model.compile(loss='mean_absolute_error', optimizer='adam', metrics=['mean_absolute_error'])
+
+	model.summary()
+	return model
 
 
-cross_entropy = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=y, labels=y_))
-#cross_entropy = tf.reduce_mean(tf.square(y_-y))
-train_step = tf.train.GradientDescentOptimizer(0.001).minimize(cross_entropy)
-
-# Evaluate model
-accuracy=tf.losses.mean_squared_error(y_,y)
-
-init = tf.global_variables_initializer()
-
-#Create a saver object which will save all the variables
-saver = tf.train.Saver()
-
-with tf.Session() as sess:
-    sess.run(init)
-    for step in range(491):
-     
-        #  batch_xs= np.transpose(mini_batches[step][0])
-        #  batch_ys= np.transpose(mini_batches[step][1])
-
-        #  sess.run(train_step, feed_dict={x: batch_xs, y_:batch_ys})
-
-        #  if step % display_step == 0 or step == 1:
-        #     loss, acc = sess.run([cross_entropy, accuracy], feed_dict={x: batch_xs, y_:batch_ys})
-        #     print("Step " + str(step) + ", Minibatch Loss= " + "{:.4f}".format(loss) + ", Training Accuracy= " + "{:.3f}".format(acc))
-    
-        sess.run(train_step,feed_dict={x:np.transpose(Train_x), y_:np.transpose(Train_y)})
-        if step % display_step == 0 or step == 1:
-            loss, acc = sess.run([cross_entropy, accuracy], feed_dict={x:np.transpose(Train_x), y_:np.transpose(Train_y)})
-            print("Step " + str(step) + ", Loss= " + "{:.4f}".format(loss) + ", Training Accuracy= " + "{:.3f}".format(acc))
-    
-    saved_path = saver.save(sess, './my_model',global_step=491)    
-    
-print("Optimization Finished!")
-
-#########################################################################
-
-# delete the current graph
-tf.reset_default_graph()
-
-# import the graph from the file
-imported_graph = tf.train.import_meta_graph('my_model-491.meta')
-
-# list all the tensors in the graph
-#for tensor in tf.get_default_graph().get_operations():
-#    print (tensor.name)
+# evaluate model
+estimator = KerasRegressor(build_fn=baseline_model, epochs=100, batch_size=8,validation_split = 0.2, verbose=1)
+kfold = KFold(n_splits=10)
+results = cross_val_score(estimator, X_train, Y_train, cv=kfold)
+#print("Baseline: %.2f (%.2f) MSE %.2f" % (results.mean(), results.std(), results.var() ))
+print("Results", results)
 
 
 
-# run the session
-#with tf.Session() as sess:
-    # restore the saved vairable
-    #imported_graph.restore(sess, './my_model-491')
-    # print the loaded variable
-    #weight, bias = sess.run(['weights:0','bias:0'])
-    #print('W = ', weight)
-    #print('b = ', bias)
+# # evaluate model with standardized dataset
+# estimators = []
+# estimators.append(('standardize', StandardScaler()))
+# estimators.append(('mlp', KerasRegressor(build_fn=baseline_model, epochs=100, batch_size=100, verbose=2)))
+# pipeline = Pipeline(estimators)
+# kfold = KFold(n_splits=10)
+# results = cross_val_score(pipeline, X_train, Y_train, cv=kfold)
+# print("Results", results)
+# #print("Standardized: %.2f (%.2f) MSE" % (results.mean(), results.std()))
 
+
+model = baseline_model()
+model.save('VBFM.h5')
+#model.save('standardize_VBFM.h5')
+
+
+# predicted_y=estimator.predict(Y_test)
+# MSE = mean_squared_error(Y_test , predicted_y)
+# print(" Test MSE = ", MSE)
+
+# # digit = model.predict_classes(a)
+# # print(digit[0])
+# # print(Y_test[0])
 
