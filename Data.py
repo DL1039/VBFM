@@ -4,13 +4,39 @@ from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 from keras.utils import to_categorical
 
-#Load NN Data
+import pandas as pd
+import seaborn as sb
+from pylab import rcParams
+from pandas import DataFrame
+
+rcParams['figure.figsize'] = 10, 8
+sb.set_style('whitegrid')
+
+#Load NN Data from mat file into dict.
 mat=scipy.io.loadmat(r'/home/dl2020/Python/NeuralNetwork/NNData.mat')
 print(mat.keys())
 
-
+#returns the NNData value forom dict. 
 NNData=mat["NNData"]
 print(NNData.shape)
+
+#convert list to panda dataframe
+df=DataFrame(NNData)
+df.columns=['dev._stage','dimple_ang.','radii_ratio','orientation_ang.','area','force']
+print(df.head(10))
+
+#Checking for missing values
+print(df.isnull().sum())
+
+#print data information
+print(df.info())
+
+#Converting categorical variables to a dummy indicators
+stage=pd.get_dummies(df['dev._stage'],drop_first=False)
+print(stage.head(10))
+df.drop(['dev._stage'],axis=1,inplace=True)
+df=pd.concat([df,stage],axis=1)
+print(df.head())
 
 X=NNData[:,0:5]
 Y=NNData[:,5:]
