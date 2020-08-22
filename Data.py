@@ -38,37 +38,68 @@ df.drop(['dev._stage'],axis=1,inplace=True)
 df=pd.concat([df,stage],axis=1)
 print(df.head())
 
-X=NNData[:,0:5]
-Y=NNData[:,5:]
-print(X.shape)
-print(Y.shape)
-print("\n\n")
+#rename new columns
+df.rename(columns = {1:'ds1'}, inplace = True) 
+df.rename(columns = {2:'ds2'}, inplace = True)
+df.rename(columns = {3:'ds3'}, inplace = True)
 
-# Data Normalization
-print("maximum dimple angle is", X[:,1:2].max())
-print("maximum orientation angle is", X[:,3:4].max())
-X[:,1:2]=X[:,1:2]/180
-print("maximum normalized dimple angle is", X[:,1:2].max())
-X[:,3:4]=X[:,3:4]/180
-print("maximum normalized orientation angle is", X[:,3:4].max())
+#change order of columns
+Col_Order = ['dimple_ang.','radii_ratio','orientation_ang.','area','ds1','ds2','ds3','force']
+df = df.reindex(columns=Col_Order)
+print(df.head())
 
-# one-hot encode the developmental stage categorical data
-data=X[:,0:1]
-data = to_categorical(data)
-print(data)
-print(data.shape)
-X=np.hstack((X,data))
-print(X)
-print(X.shape)
+#Checking for independence between features
+sb.heatmap(df.corr())
+#plt.show()
 
-X=np.delete(X,0,1)
-print(X)
-print(X.shape)
+#data normalization using mean normalization
+#df['dimple_ang.']=(df['dimple_ang.']-df['dimple_ang.'].mean())/df['dimple_ang.'].std()
+#df['orientation_ang.']=(df['orientation_ang.']-df['orientation_ang.'].mean())/df['orientation_ang.'].std()
+#print(df.head())
 
-X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size = 0.2, random_state=5)
+#data normalization using min-max normalization
+df['dimple_ang.']=(df['dimple_ang.']-df['dimple_ang.'].min())/(df['dimple_ang.'].max()-df['dimple_ang.'].min())
+df['orientation_ang.']=(df['orientation_ang.']-df['orientation_ang.'].min())/(df['orientation_ang.'].max()-df['orientation_ang.'].min())
+print(df.head())
+
+
+X = df.iloc[:,0:7]
+y = df.iloc[:,7:8]
+
+#######################################Implementation with List########################
+# X=NNData[:,0:5]
+# Y=NNData[:,5:]
+# print(X.shape)
+# print(Y.shape)
+# print("\n\n")
+
+# #Data Normalization
+# print("maximum dimple angle is", X[:,1:2].max())
+# print("maximum orientation angle is", X[:,3:4].max())
+# X[:,1:2]=X[:,1:2]/180
+# print("maximum normalized dimple angle is", X[:,1:2].max())
+# X[:,3:4]=X[:,3:4]/180
+# print("maximum normalized orientation angle is", X[:,3:4].max())
+
+# # one-hot encode the developmental stage categorical data
+# data=X[:,0:1]
+# data = to_categorical(data)
+# print(data)
+# print(data.shape)
+# X=np.hstack((X,data))
+# print(X)
+# print(X.shape)
+
+# X=np.delete(X,0,1)
+# print(X)
+# print(X.shape)
+#######################################Implementation with List########################
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state=5)
 print(X_train.shape)
-print(Y_train.shape)
+print(y_train.shape)
 print(X_test.shape)
-print(Y_test.shape)
+print(y_test.shape)
 
-scipy.io.savemat('/home/dl2020/Python/BostonHousing/Data.mat', {'X_train':X_train,'Y_train':Y_train,'X_test':X_test,'Y_test':Y_test})
+scipy.io.savemat('/home/dl2020/Python/BostonHousing/Data.mat', {'X_train':X_train,'y_train':y_train,'X_test':X_test,'y_test':y_test})
+#sio.savemat(os.path.join(destination_folder_path,'meta.mat'), df)

@@ -18,14 +18,14 @@ mat=scipy.io.loadmat(r'/home/dl2020/Python/BostonHousing/Data.mat')
 print(mat.keys())
 
 X_train=mat["X_train"]
-Y_train=mat["Y_train"]
+y_train=mat["y_train"]
 X_test=mat["X_test"]
-Y_test=mat["Y_test"]
+y_test=mat["y_test"]
 
 print(X_train.shape)
-print(Y_train.shape)
+print(y_train.shape)
 print(X_test.shape)
-print(Y_test.shape)
+print(y_test.shape)
 
 # define base model
 def baseline_model():
@@ -62,7 +62,7 @@ def baseline_model():
 # evaluate model
 estimator = KerasRegressor(build_fn=baseline_model, epochs=100, batch_size=8,validation_split = 0.2, verbose=1)
 kfold = KFold(n_splits=10)
-results = cross_val_score(estimator, X_train, Y_train, cv=kfold)
+results = cross_val_score(estimator, X_train, y_train, cv=kfold)
 #print("Baseline: %.2f (%.2f) MSE %.2f" % (results.mean(), results.std(), results.var() ))
 print("Results", results)
 
@@ -74,7 +74,7 @@ print("Results", results)
 # estimators.append(('mlp', KerasRegressor(build_fn=baseline_model, epochs=100, batch_size=100, verbose=2)))
 # pipeline = Pipeline(estimators)
 # kfold = KFold(n_splits=10)
-# results = cross_val_score(pipeline, X_train, Y_train, cv=kfold)
+# results = cross_val_score(pipeline, X_train, y_train, cv=kfold)
 # print("Results", results)
 # #print("Standardized: %.2f (%.2f) MSE" % (results.mean(), results.std()))
 
@@ -84,11 +84,11 @@ model.save('VBFM.h5')
 #model.save('standardize_VBFM.h5')
 
 
-# predicted_y=estimator.predict(Y_test)
-# MSE = mean_squared_error(Y_test , predicted_y)
+# predicted_y=estimator.predict(y_test)
+# MSE = mean_squared_error(y_test , predicted_y)
 # print(" Test MSE = ", MSE)
 
 # # digit = model.predict_classes(a)
 # # print(digit[0])
-# # print(Y_test[0])
+# # print(y_test[0])
 
