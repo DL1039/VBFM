@@ -49,8 +49,8 @@ df = df.reindex(columns=Col_Order)
 print(df.head())
 
 #Checking for independence between features
-sb.heatmap(df.corr())
-#plt.show()
+sb.heatmap(df.corr(), annot=True)
+plt.show()
 
 #data normalization using mean normalization
 #df['dimple_ang.']=(df['dimple_ang.']-df['dimple_ang.'].mean())/df['dimple_ang.'].std()
@@ -95,11 +95,18 @@ y = df.iloc[:,7:8]
 # print(X.shape)
 #######################################Implementation with List########################
 
+#split data to train and test
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state=5)
 print(X_train.shape)
 print(y_train.shape)
 print(X_test.shape)
 print(y_test.shape)
 
-scipy.io.savemat('/home/dl2020/Python/BostonHousing/Data.mat', {'X_train':X_train,'y_train':y_train,'X_test':X_test,'y_test':y_test})
-#sio.savemat(os.path.join(destination_folder_path,'meta.mat'), df)
+#converting dataframe to list
+X_train_l = X_train.values.tolist()
+y_train_l = y_train.values.tolist()
+X_test_l = X_test.values.tolist()
+y_test_l = y_test.values.tolist()
+
+#save data into mat file
+scipy.io.savemat('/home/dl2020/Python/BostonHousing/Data.mat', {'X_train':X_train_l,'y_train':y_train_l,'X_test':X_test_l,'y_test':y_test_l})

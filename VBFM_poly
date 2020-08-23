@@ -1,0 +1,30 @@
+# For disabling the warning
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
+import scipy.io
+import numpy as np
+
+from keras.models import Sequential
+from keras.layers import Dense
+from keras.wrappers.scikit_learn import KerasRegressor
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import KFold
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+from matplotlib import pyplot
+
+
+#Load NN Data
+mat=scipy.io.loadmat(r'/home/dl2020/Python/BostonHousing/Data.mat')
+print(mat.keys())
+
+X_train=mat["X_train"]
+y_train=mat["y_train"]
+X_test=mat["X_test"]
+y_test=mat["y_test"]
+
+print(X_train.shape)
+print(y_train.shape)
+print(X_test.shape)
+print(y_test.shape)
