@@ -48,7 +48,7 @@ Col_Order = ['dimple_ang.','radii_ratio','orientation_ang.','area','ds1','ds2','
 df = df.reindex(columns=Col_Order)
 print(df.head())
 
-#Checking for independence between features
+# Plotting the heatmap of correlation between features for checking the dependency between features
 sb.heatmap(df.corr(), annot=True)
 plt.show()
 
@@ -62,6 +62,8 @@ df['dimple_ang.']=(df['dimple_ang.']-df['dimple_ang.'].min())/(df['dimple_ang.']
 df['orientation_ang.']=(df['orientation_ang.']-df['orientation_ang.'].min())/(df['orientation_ang.'].max()-df['orientation_ang.'].min())
 print(df.head())
 
+# Viewing the data statistics
+print(df.describe())
 
 X = df.iloc[:,0:7]
 y = df.iloc[:,7:8]

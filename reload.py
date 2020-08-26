@@ -1,3 +1,4 @@
+
 from keras.models import load_model
 import scipy.io
 import numpy as np
@@ -34,8 +35,8 @@ print('Test loss:',loss)
 
 predicted_y_train=model.predict(X_train)
 plt.title('Train Data')
-#plt.plot(X_train[:,0:1], y_train, 'ro', X_train[:,0:1],predicted_y_train,'bs',markersize=1)
-plt.plot(X_train[:,0:1],predicted_y_train,'bs',markersize=1)
+plt.plot(X_train[:,0:1], y_train, 'ro', X_train[:,0:1],predicted_y_train,'bs',markersize=1)
+#plt.plot(X_train[:,0:1],predicted_y_train,'bs',markersize=1)
 plt.show()
 
 predicted_y_test=model.predict(X_test)
@@ -44,7 +45,7 @@ plt.plot(X_test[:,0:1], y_test, 'ro', X_test[:,0:1],predicted_y_test,'bs',marker
 plt.show()
 
 
-# digit = model.predict(X_test[130:131,:])
-# print(X_test[130:131,:])
-# print(digit)
-# print(Y_test[130:131,:])
+digit = model.predict(X_test[130:131,:])
+print(X_test[130:131,:])
+print(digit)
+print(y_test[130:131,:])

@@ -4,7 +4,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 import scipy.io
 import numpy as np
-
+import tensorflow as tf
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.wrappers.scikit_learn import KerasRegressor
@@ -29,38 +29,51 @@ print(y_train.shape)
 print(X_test.shape)
 print(y_test.shape)
 
+initializer = tf.keras.initializers.he_uniform()
+#initializer=tf.keras.initializers.GlorotNormal
+
 # define base model
 def baseline_model():
 	# create model
 	model = Sequential()
-	model.add(Dense(7, input_dim=7, kernel_initializer='normal', activation='relu'))
-	#model.add(Dense(4, kernel_initializer='normal', activation='relu'))
-	model.add(Dense(1, kernel_initializer='normal'))
+
+	#model.add(Dense(100, input_dim=7, kernel_initializer=initializer, activation=tf.keras.layers.LeakyReLU(alpha=0.1)))
+	model.add(Dense(100, input_dim=7, kernel_initializer=initializer))
+	model.add(tf.keras.layers.LeakyReLU(alpha=0.1))
+	
+	# model.add(Dense(50, kernel_initializer= initializer, activation=LeakyReLU(alpha=0.1)))
+	model.add(Dense(50, kernel_initializer= initializer))
+	model.add(tf.keras.layers.LeakyReLU(alpha=0.1))
+
+	# model.add(Dense(20, kernel_initializer= initializer, activation=LeakyReLU(alpha=0.1)))
+	model.add(Dense(20, kernel_initializer= initializer))
+	model.add(tf.keras.layers.LeakyReLU(alpha=0.1))
+
+	# model.add(Dense(8, kernel_initializer= initializer, activation=LeakyReLU(alpha=0.1)))
+	model.add(Dense(8, kernel_initializer= initializer))
+	model.add(tf.keras.layers.LeakyReLU(alpha=0.1))
+
+	model.add(Dense(1, kernel_initializer=initializer))
 	# Compile model
 	model.compile(loss='mean_squared_error',metrics=['mse'], optimizer='adam')
-
-	# model = Sequential()
-	# # The Input Layer :
-	# model.add(Dense(128, kernel_initializer='normal',input_dim = 7, activation='relu'))
-	# # The Hidden Layers :
-	# model.add(Dense(256, kernel_initializer='normal',activation='relu'))
-	# model.add(Dense(256, kernel_initializer='normal',activation='relu'))
-	# model.add(Dense(256, kernel_initializer='normal',activation='relu'))
-	# # The Output Layer :
-	# model.add(Dense(1, kernel_initializer='normal',activation='linear'))
-	# # Compile the network :
-	# model.compile(loss='mean_absolute_error', optimizer='adam', metrics=['mean_absolute_error'])
 
 	model.summary()
 	return model
 
 
 # evaluate model
-estimator = KerasRegressor(build_fn=baseline_model, epochs=50, batch_size=8,validation_split = 0.2, verbose=1)
-kfold = KFold(n_splits=10)
+estimator = KerasRegressor(build_fn=baseline_model, epochs=20, batch_size=64,validation_split = 0.2, verbose=1)
+kfold = KFold(n_splits=5)
 results = cross_val_score(estimator, X_train, y_train, cv=kfold)
 #print("Baseline: %.2f (%.2f) MSE %.2f" % (results.mean(), results.std(), results.var() ))
 print("Results", results)
 
-model = baseline_model()
-model.save('VBFM.h5')
+estimator.fit(X_train, y_train)
+predicted_y_test = estimator.predict(X_test)
+
+import matplotlib.pyplot as plt
+plt.title('Test Data')
+plt.plot(X_test[:,0:1], y_test, 'ro', X_test[:,0:1],predicted_y_test,'bs',markersize=1)
+plt.show()
+
+estimator.model.save('VBFM.h5')
