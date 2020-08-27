@@ -12,11 +12,14 @@ from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import KFold
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
-from matplotlib import pyplot
+import matplotlib.pyplot as plt
+from datetime import datetime
+import os
+
 
 
 #Load NN Data
-mat=scipy.io.loadmat(r'/home/dl2020/Python/BostonHousing/Data.mat')
+mat=scipy.io.loadmat(r'/home/dl2020/Python/BostonHousing/Data2.mat')
 print(mat.keys())
 
 X_train=mat["X_train"]
@@ -30,31 +33,27 @@ print(X_test.shape)
 print(y_test.shape)
 
 initializer = tf.keras.initializers.he_uniform()
-#initializer=tf.keras.initializers.GlorotNormal
 
 # define base model
 def baseline_model():
+
 	# create model
 	model = Sequential()
 
 	#model.add(Dense(100, input_dim=7, kernel_initializer=initializer, activation=tf.keras.layers.LeakyReLU(alpha=0.1)))
 	model.add(Dense(100, input_dim=7, kernel_initializer=initializer))
 	model.add(tf.keras.layers.LeakyReLU(alpha=0.1))
-	
 	# model.add(Dense(50, kernel_initializer= initializer, activation=LeakyReLU(alpha=0.1)))
 	model.add(Dense(50, kernel_initializer= initializer))
 	model.add(tf.keras.layers.LeakyReLU(alpha=0.1))
-
 	# model.add(Dense(20, kernel_initializer= initializer, activation=LeakyReLU(alpha=0.1)))
 	model.add(Dense(20, kernel_initializer= initializer))
 	model.add(tf.keras.layers.LeakyReLU(alpha=0.1))
-
 	# model.add(Dense(8, kernel_initializer= initializer, activation=LeakyReLU(alpha=0.1)))
 	model.add(Dense(8, kernel_initializer= initializer))
 	model.add(tf.keras.layers.LeakyReLU(alpha=0.1))
-
 	model.add(Dense(1, kernel_initializer=initializer))
-	# Compile model
+
 	model.compile(loss='mean_squared_error',metrics=['mse'], optimizer='adam')
 
 	model.summary()
@@ -62,18 +61,34 @@ def baseline_model():
 
 
 # evaluate model
-estimator = KerasRegressor(build_fn=baseline_model, epochs=20, batch_size=64,validation_split = 0.2, verbose=1)
+estimator = KerasRegressor(build_fn=baseline_model, epochs=2, batch_size=64,validation_split = 0.2, verbose=1)
 kfold = KFold(n_splits=5)
 results = cross_val_score(estimator, X_train, y_train, cv=kfold)
-#print("Baseline: %.2f (%.2f) MSE %.2f" % (results.mean(), results.std(), results.var() ))
 print("Results", results)
 
 estimator.fit(X_train, y_train)
-predicted_y_test = estimator.predict(X_test)
 
-import matplotlib.pyplot as plt
+loss=estimator.model.evaluate(X_train,y_train)
+print('Train loss:',loss)
+
+loss =estimator.model.evaluate(X_test,y_test)
+print('Test loss:',loss)
+
+#create a directory with sytem datetime and save the model
+mydir = os.path.join(os.getcwd(), datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
+os.makedirs(mydir)
+dst = os.path.join(os.getcwd(),mydir)
+estimator.model.save(dst+'/VBFM2.h5')
+
+predicted_y_train=estimator.model.predict(X_train)
+plt.title('Train Data')
+plt.plot(X_train[:,0:1], y_train, 'ro', X_train[:,0:1],predicted_y_train,'bs',markersize=1)
+#plt.plot(X_train[:,0:1],predicted_y_train,'bs',markersize=1)
+#plt.show()
+plt.savefig(os.path.join(dst,'Train.png'))
+
+predicted_y_test=estimator.model.predict(X_test)
 plt.title('Test Data')
-plt.plot(X_test[:,0:1], y_test, 'ro', X_test[:,0:1],predicted_y_test,'bs',markersize=1)
-plt.show()
-
-estimator.model.save('VBFM.h5')
+#plt.plot(X_test[:,0:1], y_test, 'ro', X_test[:,0:1],predicted_y_test,'bs',markersize=1)
+#plt.show()
+plt.savefig(os.path.join(dst,'Test.png'))
