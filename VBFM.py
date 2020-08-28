@@ -10,8 +10,9 @@ from keras.layers import Dense
 from keras.wrappers.scikit_learn import KerasRegressor
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import KFold
-from sklearn.preprocessing import StandardScaler
-from sklearn.pipeline import Pipeline
+#from sklearn.preprocessing import StandardScaler
+#from sklearn.pipeline import Pipeline
+from sklearn.metrics import r2_score
 import matplotlib.pyplot as plt
 from datetime import datetime
 import os
@@ -54,7 +55,7 @@ def baseline_model():
 	model.add(tf.keras.layers.LeakyReLU(alpha=0.1))
 	model.add(Dense(1, kernel_initializer=initializer))
 
-	model.compile(loss='mean_squared_error',metrics=['mse'], optimizer='adam')
+	model.compile(loss='mean_squared_error', optimizer='adam')
 
 	model.summary()
 	return model
@@ -68,27 +69,37 @@ print("Results", results)
 
 estimator.fit(X_train, y_train)
 
-loss=estimator.model.evaluate(X_train,y_train)
-print('Train loss:',loss)
-
-loss =estimator.model.evaluate(X_test,y_test)
-print('Test loss:',loss)
-
 #create a directory with sytem datetime and save the model
 mydir = os.path.join(os.getcwd(), datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
 os.makedirs(mydir)
 dst = os.path.join(os.getcwd(),mydir)
 estimator.model.save(dst+'/VBFM2.h5')
 
+#Evaluation of the model for the training data
 predicted_y_train=estimator.model.predict(X_train)
+loss=estimator.model.evaluate(X_train,y_train)
+r_2=r2_score(y_train, predicted_y_train)
+print("\nTrain Loss: %.4f \nTrain R_squared: %.2f" %(loss,r_2))
+#fmtL = "Train loss : " + ', '.join(["{:.4f}"]*len(loss))
+#print(fmtL.format(*loss))
+
 plt.title('Train Data')
 plt.plot(X_train[:,0:1], y_train, 'ro', X_train[:,0:1],predicted_y_train,'bs',markersize=1)
-#plt.plot(X_train[:,0:1],predicted_y_train,'bs',markersize=1)
 #plt.show()
 plt.savefig(os.path.join(dst,'Train.png'))
 
+
+#Evaluation of the model for the test data
 predicted_y_test=estimator.model.predict(X_test)
+loss=estimator.model.evaluate(X_test,y_test)
+r_2=r2_score(y_test, predicted_y_test)
+print("\nTest Loss: %.4f \nTest R_squared: %.2f" %(loss,r_2))
+
+#fmtL = "Test loss : " + ', '.join(["{:.4f}"]*len(loss))
+#print(fmtL.format(*loss))
+
+plt.clf()
 plt.title('Test Data')
-#plt.plot(X_test[:,0:1], y_test, 'ro', X_test[:,0:1],predicted_y_test,'bs',markersize=1)
+plt.plot(X_test[:,0:1], y_test, 'ro', X_test[:,0:1],predicted_y_test,'bs',markersize=1)
 #plt.show()
 plt.savefig(os.path.join(dst,'Test.png'))
