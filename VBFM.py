@@ -62,8 +62,8 @@ def baseline_model():
 
 
 # evaluate model
-estimator = KerasRegressor(build_fn=baseline_model, epochs=2, batch_size=64,validation_split = 0.2, verbose=1)
-kfold = KFold(n_splits=5)
+estimator = KerasRegressor(build_fn=baseline_model, epochs=100, batch_size=64,validation_split = 0.2, verbose=1)
+kfold = KFold(n_splits=10)
 results = cross_val_score(estimator, X_train, y_train, cv=kfold)
 print("Results", results)
 
@@ -83,6 +83,10 @@ print("\nTrain Loss: %.4f \nTrain R_squared: %.2f" %(loss,r_2))
 #fmtL = "Train loss : " + ', '.join(["{:.4f}"]*len(loss))
 #print(fmtL.format(*loss))
 
+#log the evaluation metrics for training data
+f = open(dst+"/eval_metrics.txt", "w")
+f.write("\nTrain Loss: %.4f \nTrain R_squared: %.2f" %(loss,r_2))
+
 plt.title('Train Data')
 plt.plot(X_train[:,0:1], y_train, 'ro', X_train[:,0:1],predicted_y_train,'bs',markersize=1)
 #plt.show()
@@ -95,6 +99,9 @@ loss=estimator.model.evaluate(X_test,y_test)
 r_2=r2_score(y_test, predicted_y_test)
 print("\nTest Loss: %.4f \nTest R_squared: %.2f" %(loss,r_2))
 
+#log the evaluation metrics for test data
+f.write("\nTest Loss: %.4f \nTest R_squared: %.2f" %(loss,r_2))
+f.close()
 #fmtL = "Test loss : " + ', '.join(["{:.4f}"]*len(loss))
 #print(fmtL.format(*loss))
 
